@@ -1,20 +1,37 @@
-var SafeRoute = artifacts.require("SafeRoute");
-var RDWToken = artifacts.require("RDWToken");
+const assert = require("assert");
 
-contract('SafeRoute', function(accounts) {
-  let contract;
+const RDWToken = artifacts.require("./RDWToken.sol");
+const SafeRoute = artifacts.require("./SafeRoute.sol");
+
+contract("SafeRoute", (accounts) => {
   let token;
-  
+  let contract;
+
   beforeEach(async () => {
-	token = await RDWToken.new();
-	contract = await SafeRoute.new("0x1D606B889E3B0C60482948CA66192D52438F5A10E9A930C55C238398E9C0500B","http://localhost/dossier/id=1234",token.address);
+    token = await RDWToken.new();
+    contract = await SafeRoute.new("hash", "http://pointer", token.address);
   });
-  
-  it("addRoadManager, assert balance of contract.address", async function() {
+
+  it("should have correct balance", async () => {
     //act
-	contract.addRoadManager(accounts[1], 100, {from: accounts[3]});
+    await contract.addRoadManager(accounts[1], 100);
+
     //assert
     const balance = await token.balanceOf(contract.address);
-    assert.equal(parseInt(balance), 100, "wasn't in the first account");
+    assert.equal(balance, 100)
+  });
+  
+  it("should withdraw tokens", async () => {
+    //arrange
+    await contract.addRoadManager(accounts[1], 100);
+
+    //act
+    await contract.withdraw({from: accounts[1]});
+
+    //assert
+    const contractBalance = await token.balanceOf(contract.address);
+    assert.equal(contractBalance, 0)
+    const managerBalance = await token.balanceOf(accounts[1]);
+    assert.equal(managerBalance, 100)
   });
 });
