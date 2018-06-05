@@ -58,13 +58,15 @@ contract('RDWToken', function(accounts) {
 	try
 	{
       //act
-	  contract.transfer(accounts[1], 750);
+	  await contract.transfer(accounts[1], 750);
 	}
 	catch(err)
 	{
   	  const balance = await contract.balanceOf(accounts[0]);
 	  assert.equal(parseInt(balance), 700, " wasn't in the first account");
+	  return;
 	}
+	assert.fail();
     //assert
   });  
 });
