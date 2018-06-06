@@ -13,3 +13,5 @@ In order to start the application you should follow steps below:
 - Go to in repo directory
 - Install packages ``npm install``
 - Start app ``npm start``
+
+## 5. [Homework 3 (Finalizing)](3.homework.md)
