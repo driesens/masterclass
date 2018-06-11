@@ -13,8 +13,15 @@ class App extends Component {
     super(props)
 
     this.state = {
-      web3: null
+      web3: null,
+      token: {},
+      contract: {},
+      balance: 0,
+      balanceRM: 0,
     }
+
+    this.onClick = this.onClick.bind(this);
+    this.onWithdrawClick = this.onWithdrawClick.bind(this);
   }
 
   componentWillMount() {
@@ -42,10 +49,31 @@ class App extends Component {
     safeRoute.setProvider(this.state.web3.currentProvider)
 
     var tokenInstance = await token.at(process.env.REACT_APP_TOKEN_CONTRACT)
-    var safeRouteInstance = await token.at(process.env.REACT_APP_SAFE_ROUTE_CONTRACT)
+    var safeRouteInstance = await safeRoute.at(process.env.REACT_APP_SAFE_ROUTE_CONTRACT)
+    var balance = await tokenInstance.balanceOf(safeRouteInstance.address);
+    var balanceRM = await tokenInstance.balanceOf("0x49492f29270b15c5fa192fc84bc53a2a33de701e");
 
+    this.setState({
+      token: tokenInstance,
+      contract: safeRouteInstance,
+      balance: parseInt(balance),
+      balanceRM: parseInt(balanceRM)
+    });
     console.log(tokenInstance)
     console.log(safeRouteInstance)
+  }
+
+  async onClick() {
+    var result = await this.state.contract
+      .addRoadManager("0x49492f29270b15c5fa192fc84bc53a2a33de701e", 10000);
+    var balance = await this.state.token.balanceOf(this.state.contract.address);
+    this.setState({ balance: parseInt(balance) });
+  }
+
+  async onWithdrawClick() {
+    var result = await this.state.contract.withdraw({ from: "0x49492f29270b15c5fa192fc84bc53a2a33de701e" });
+    var balance = await this.state.token.balanceOf("0x49492f29270b15c5fa192fc84bc53a2a33de701e");
+    this.setState({ balanceRM: parseInt(balance) });
   }
 
   render() {
@@ -60,6 +88,14 @@ class App extends Component {
             <div className="pure-u-1-1">
               <h1>Good to Go!</h1>
               <p>Your app is installed and ready.</p>
+              <input type="button"
+                value="add road manager"
+                onClick={this.onClick} />
+              <div>Balance of contract: <span>{this.state.balance}</span></div>
+              <input type="button"
+                value="withdraw"
+                onClick={this.onWithdrawClick} />
+              <div>Balance of road manager: <span>{this.state.balanceRM}</span></div>
             </div>
           </div>
         </main>
